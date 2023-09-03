@@ -21,6 +21,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"addons": "^0.1.2",
 		"three": "^0.153.0"
 	}
 }
