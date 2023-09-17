@@ -210,14 +210,16 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     // 수성
     const mercuryGeom = new THREE.SphereGeometry(0.912, 128, 128);
-    const mercuryMater = new THREE.MeshBasicMaterial({ color: 0x87ceeb });
+    const mercuryTextureLoader = new THREE.TextureLoader()
+    const mercuryTexture = mercuryTextureLoader.load("/Textures/8k_mercury.jpg")
+    const mercuryMater = new THREE.MeshBasicMaterial({map: mercuryTexture});
     mercury = new THREE.Mesh(mercuryGeom, mercuryMater);
     scene.add(mercury);
 
     // 금성
     const venusGeom = new THREE.SphereGeometry(2.28, 128, 128);
     const venusTextureLoader = new THREE.TextureLoader();
-    const venusTexture = venusTextureLoader.load("/Textures/Atmosphere_2K.png");
+    const venusTexture = venusTextureLoader.load("/Textures/venus.jpg");
     const venusMater = new THREE.MeshBasicMaterial({ map: venusTexture });
     venus = new THREE.Mesh(venusGeom, venusMater);
     scene.add(venus);
@@ -233,9 +235,7 @@
     // 지구
     const earthGeom = new THREE.SphereGeometry(2.4, 128, 128);
     const earthTextureLoader = new THREE.TextureLoader();
-    const earthTexture = earthTextureLoader.load(
-      "/Textures/EarthMap_2500x1250.jpg"
-    );
+    const earthTexture = earthTextureLoader.load("/Textures/EarthMap_2500x1250.jpg");
     const earthMater = new THREE.MeshBasicMaterial({ map: earthTexture });
     earth = new THREE.Mesh(earthGeom, earthMater);
     scene.add(earth);
@@ -243,9 +243,7 @@
     // 달
     const moonGeom = new THREE.SphereGeometry(0.6, 128, 128);
     const moonTextureLoader = new THREE.TextureLoader();
-    const moonTexture = moonTextureLoader.load(
-      "/Textures/moon_8k_color_brim16.jpg"
-    );
+    const moonTexture = moonTextureLoader.load("/Textures/moon_8k_color_brim16.jpg");
     const moonMater = new THREE.MeshBasicMaterial({ map: moonTexture });
     moon = new THREE.Mesh(moonGeom, moonMater);
     earth.add(moon);
@@ -260,7 +258,9 @@
 
     //목성
     const JupiterGeom = new THREE.SphereGeometry(24, 128, 128);
-    const JupiterMater = new THREE.MeshBasicMaterial({ color: 0xf8b878 });
+    const JupiterTextureloader = new THREE.TextureLoader()
+    const JupiterTexture = JupiterTextureloader.load("/Textures/jupiter.jpg");
+    const JupiterMater = new THREE.MeshBasicMaterial({map: JupiterTexture});
     jupiter = new THREE.Mesh(JupiterGeom, JupiterMater);
     scene.add(jupiter);
 
@@ -291,13 +291,17 @@
 
     //토성
     const SaturnGeom = new THREE.SphereGeometry(21.6, 128, 128);
-    const SaturnMater = new THREE.MeshBasicMaterial({ color: 0xf8b978 });
+    const SaturnTextureLoader = new THREE.TextureLoader();
+    const SaturnTexture = JupiterTextureloader.load("/Textures/saturn.jpg");
+    const SaturnMater = new THREE.MeshBasicMaterial({map: SaturnTexture});
     saturn = new THREE.Mesh(SaturnGeom, SaturnMater);
     scene.add(saturn);
 
     //천왕성
     const UranusGeom = new THREE.SphereGeometry(9.6, 128, 128);
-    const UranusMater = new THREE.MeshBasicMaterial({ color: 0xdcd7af });
+    const UranusTextureLoader = new THREE.TextureLoader();
+    const UranusTexture = UranusTextureLoader.load("Textures/2k_uranus.jpg");
+    const UranusMater = new THREE.MeshBasicMaterial({map: UranusTexture});
     uranus = new THREE.Mesh(UranusGeom, UranusMater);
     scene.add(uranus);
 
@@ -315,46 +319,34 @@
     camera.lookAt(0, 0, 0);
     const animation = () => {
       sun.rotation.y += 0.01;
-      earth.position.x =
-        1.2 * px(152.098_233, 147.098_291, Date.now() * 0.00005); //46,001,009
-      earth.position.z =
-        1.2 * py(152.098_233, 147.098_291, Date.now() * 0.00005); //69,817,445
-      earth.rotation.y -= 0.1;
-      earth.rotation.y = Math.PI / 14;
-      moon.position.x = 7.5 * Math.cos(Date.now() * 0.0004); //0.005
-      moon.position.z = 7.5 * Math.sin(Date.now() * 0.0004); //0.005
-      mercury.position.x =
-        1.2 * px(69.817_445, 46.001_009, Date.now() * 0.0003); //103.382.209
-      mercury.position.z =
-        1.2 * py(69.817_445, 46.001_009, Date.now() * 0.0003);
-      venus.position.x =
-        1.2 * px(108.942_780, 107.476_170, Date.now() * 0.00011); //249,232,432
-      venus.position.z =
-        1.2 * py(108.942_780, 107.476_170, Date.now() * 0.00011); //214,923,921
-      mars.position.x =
-        1.2 * px(206.700_000, 249.200_000, Date.now() * 0.00007); //206.700_000
-      mars.position.z =
-        1.2 * py(206.700_000, 249.200_000, Date.now() * 0.00007); //249.200_000
-      mars.rotation.y += 0.1;
-      jupiter.position.x =
-        1.2 * px(740.573_600, 816.520_800, Date.now() * 0.00009); //740,573,600
-      jupiter.position.z =
-        1.2 * py(740.573_600, 816.520_800, Date.now() * 0.00009); //816,520,800
+      earth.position.x = 1.2 * px(152.098_233, 147.098_291, Date.now() * 0.005); //46,001,009
+      earth.position.z = 1.2 * py(152.098_233, 147.098_291, Date.now() * 0.005); //69,817,445
+      earth.rotation.y += 0.01
+      moon.position.x = 7.5 * Math.cos(Date.now() * 0.004); //0.005
+      moon.position.z = 7.5 * Math.sin(Date.now() * 0.004); //0.005
+      mercury.position.x = 1.2 * px(69.817_445, 46.001_009, Date.now() * 0.0003); //103.382.209
+      mercury.position.z = 1.2 * py(69.817_445, 46.001_009, Date.now() * 0.0003);
+      mercury.rotation.y += 0.01
+      venus.position.x = 1.2 * px(108.942_780, 107.476_170, Date.now() * 0.00011); //249,232,432
+      venus.position.z = 1.2 * py(108.942_780, 107.476_170, Date.now() * 0.00011); //214,923,921
+      venus.rotation.y += 0.01
+      mars.position.x = 1.2 * px(206.700_000, 249.200_000, Date.now() * 0.00007); //206.700_000
+      mars.position.z = 1.2 * py(206.700_000, 249.200_000, Date.now() * 0.00007); //249.200_000
+      mars.rotation.y += 0.01
+      jupiter.position.x = 1.2 * px(740.573_600, 816.520_800, Date.now() * 0.00009); //740,573,600
+      jupiter.position.z = 1.2 * py(740.573_600, 816.520_800, Date.now() * 0.00009); //816,520,800
+      jupiter.rotation.y += 0.01;
       europa.position.x = 7.5 * Math.cos(Date.now() * 0.001); //0.005
       europa.position.z = 7.5 * Math.sin(Date.now() * 0.001); //0.005
-      saturn.position.x =
-        1.2 * px(1.349_467 * 1000, 1.503_983 * 1000, Date.now() * 0.000017); //1,349,467,375
-      saturn.position.z =
-        1.2 * py(1.426_725 * 1000, 1.503_983 * 1000, Date.now() * 0.000017); //1,503,983,449
-      uranus.position.x =
-        1.2 * px(4.540_000 * 1000, 4.460_000 * 1000, Date.now() * 0.000111); //4,540,000,000
-      uranus.position.z =
-        1.2 * py(4.540_000 * 1000, 4.460_000 * 1000, Date.now() * 0.000111); //4.460,000,000
-      neptune.position.x =
-        1.2 * px(4.459_631 * 1000, 4.536_874 * 1000, Date.now() * 0.00011); //4.459_631_496
-      neptune.position.z =
-        1.2 * py(4.459_631 * 1000, 4.536_874 * 1000, Date.now() * 0.00011); //4.536_874_325
-      const moveSpeed = 1;
+      saturn.position.x = 1.2 * px(1.349_467 * 1000, 1.503_983 * 1000, Date.now() * 0.000017); //1,349,467,375
+      saturn.position.z = 1.2 * py(1.426_725 * 1000, 1.503_983 * 1000, Date.now() * 0.000017); //1,503,983,449
+      saturn.rotation.y += 0.03
+      uranus.position.x = 1.2 * px(4.540_000 * 1000, 4.460_000 * 1000, Date.now() * 0.000111); //4,540,000,000
+      uranus.position.z = 1.2 * py(4.540_000 * 1000, 4.460_000 * 1000, Date.now() * 0.000111); //4.460,000,000
+      neptune.position.x = 1.2 * px(4.459_631 * 1000, 4.536_874 * 1000, Date.now() * 0.00011); //4.459_631_496
+      neptune.position.z = 1.2 * py(4.459_631 * 1000, 4.536_874 * 1000, Date.now() * 0.00011); //4.536_874_325
+      neptune.rotation.y += 0.04
+      const moveSpeed = 3;
       if (moveBack) {
         controls.moveForward(-moveSpeed);
       }
@@ -365,12 +357,11 @@
         controls.moveRight(moveSpeed);
       }
       if (moveForward) {
-          controls.moveForward(moveSpeed);  
+        controls.moveForward(moveSpeed);  
       }
       renderer.render(scene, camera);
       id = requestAnimationFrame(animation);
     };
-    jupitering.rotation.z = 180;
     id = requestAnimationFrame(animation);
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
