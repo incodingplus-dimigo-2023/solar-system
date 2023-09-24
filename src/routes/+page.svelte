@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
   import * as THREE from "three";
-  import { dataset_dev } from "svelte/internal";
+  import { add_flush_callback, dataset_dev } from "svelte/internal";
   import { dev } from "$app/environment";
 
   let canvas: HTMLCanvasElement;
@@ -27,109 +27,12 @@
   let moveLeft = false;
   let moveRight = false;
   let cameraHeight = 180;
-  let planetObjects: THREE.Mesh[] = [];
-  const planetsData = [
-    {
-      id: "1",
-      name: "sun",
-      radius: 2.4,
-      texturePath: "Agni-Baume-land.jpg",
-      rotation: "0",
-      image: "t",
-    },
-    {
-      id: "12",
-      name: "mercury",
-      radius: 0.912,
-      texturePath: "EarthMap_2500x1250.jpg",
-      rotation: "0",
-      image: "t",
-    },
-    {
-      id: "13",
-      name: "venus",
-      radius: 2.28,
-      texturePath: "EarthMap_2500x1250.jpg",
-      rotation: "0",
-      image: "t",
-    },
-    {
-      id: "14",
-      name: "earth",
-      radius: 2.4,
-      texturePath: "EarthMap_2500x1250.jpg",
-      rotation: "0",
-      image: "t",
-    },
-    {
-      id: "141",
-      name: "moon",
-      radius: 0.6,
-      texturePath: "EarthMap_2500x1250.jpg",
-      rotation: "1",
-      image: "t",
-    },
-    {
-      id: "15",
-      name: "mars",
-      radius: 2,
-      texturePath: "EarthMap_2500x1250.jpg",
-      image: "f",
-    },
-    {
-      id: "16",
-      name: "jupiter",
-      radius: 24,
-      texturePath: "EarthMap_2500x1250.jpg",
-      rotation: "0",
-      image: "f",
-    },
-    {
-      id: "17",
-      name: "saturn",
-      radius: 21.6,
-      texturePath: "EarthMap_2500x1250.jpg",
-      rotation: "0",
-      image: "f",
-    },
-    {
-      id: "18",
-      name: "uranus",
-      radius: 9.6,
-      texturePath: "EarthMap_2500x1250.jpg",
-      rotation: "0",
-      image: "f",
-    },
-    {
-      id: "19",
-      name: "neptune",
-      radius: 9.6,
-      texturePath: "EarthMap_2500x1250.jpg",
-      rotation: "0",
-      image: "f",
-    },
-    {
-      id: "161",
-      name: "eruopa",
-      radius: 0.6,
-      texturePath: "EarthMap_2500x1250.jpg",
-      rotation: "0",
-      image: "f",
-    },
-  ];
-
-  function createPlanet(data: any) {
-    const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load(data.texturePath);
-
-    const geometry = new THREE.SphereGeometry(data.radius, 128, 128);
-    const material = new THREE.MeshBasicMaterial({ map: texture });
-
-    const planet = new THREE.Mesh(geometry, material);
-
-    scene.add(planet);
-    return planet;
+  const py = (t: number) => {
+    return ((t * Math.PI) / 180);
   }
+  const orbitalTiltAngle = 7;
+  const orbitalTiltRadians = (orbitalTiltAngle * Math.PI) / 180;
+
   const toE = (a: number, b: number) => (a - b) / (a + b);
   const toR = (a: number, b: number, t: number) => {
     let e = toE(a, b);
@@ -137,8 +40,8 @@
     return (jang * (1 - e * e)) / (1 + e * Math.cos(t));
   };
 
-  const px = (a: number, b: number, t: number) => toR(a, b, t) * Math.cos(t);
-  const py = (a: number, b: number, t: number) => toR(a, b, t) * Math.sin(t);
+  const px = (a: number, b: number, t: number) => toR(a, b, t) * Math.cos(t); //x축 계산식
+  const pz = (a: number, b: number, t: number) => toR(a, b, t) * Math.sin(t); //z축 계산식
 
   let controls: PointerLockControls;
 
@@ -183,6 +86,7 @@
   };
 
   onMount(() => {
+    
     camera = new THREE.PerspectiveCamera(
       90,
       window.innerWidth / window.innerHeight,
@@ -207,6 +111,15 @@
       canvas: canvas,
       antialias: true,
     });
+
+    // 태양
+    const sunGeom = new THREE.SphereGeometry(40, 128, 128);
+    const sunTextureLoader = new THREE.TextureLoader();
+    const sunTexture = sunTextureLoader.load("/Textures/8k_sun.jpg");
+    const sunMater = new THREE.MeshBasicMaterial({ map: sunTexture });
+    const sun = new THREE.Mesh(sunGeom, sunMater);
+    scene.add(sun);
+
     renderer.setSize(window.innerWidth, window.innerHeight);
     // 수성
     const mercuryGeom = new THREE.SphereGeometry(0.912, 128, 128);
@@ -214,7 +127,7 @@
     const mercuryTexture = mercuryTextureLoader.load("/Textures/8k_mercury.jpg")
     const mercuryMater = new THREE.MeshBasicMaterial({map: mercuryTexture});
     mercury = new THREE.Mesh(mercuryGeom, mercuryMater);
-    scene.add(mercury);
+    sun.add(mercury);
 
     // 금성
     const venusGeom = new THREE.SphereGeometry(2.28, 128, 128);
@@ -222,28 +135,20 @@
     const venusTexture = venusTextureLoader.load("/Textures/venus.jpg");
     const venusMater = new THREE.MeshBasicMaterial({ map: venusTexture });
     venus = new THREE.Mesh(venusGeom, venusMater);
-    scene.add(venus);
-
-    // 태양
-    const sunGeom = new THREE.SphereGeometry(40, 128, 128);
-    const sunTextureLoader = new THREE.TextureLoader();
-    const sunTexture = sunTextureLoader.load("/Textures/Agni-Baume-land.jpg");
-    const sunMater = new THREE.MeshBasicMaterial({ map: sunTexture });
-    const sun = new THREE.Mesh(sunGeom, sunMater);
-    scene.add(sun);
+    sun.add(venus);
 
     // 지구
     const earthGeom = new THREE.SphereGeometry(2.4, 128, 128);
     const earthTextureLoader = new THREE.TextureLoader();
-    const earthTexture = earthTextureLoader.load("/Textures/EarthMap_2500x1250.jpg");
+    const earthTexture = earthTextureLoader.load("/Textures/8k_earth_daymap.jpg");
     const earthMater = new THREE.MeshBasicMaterial({ map: earthTexture });
     earth = new THREE.Mesh(earthGeom, earthMater);
-    scene.add(earth);
+    sun.add(earth);
 
     // 달
     const moonGeom = new THREE.SphereGeometry(0.6, 128, 128);
     const moonTextureLoader = new THREE.TextureLoader();
-    const moonTexture = moonTextureLoader.load("/Textures/moon_8k_color_brim16.jpg");
+    const moonTexture = moonTextureLoader.load("/Textures/8k_moon.jpg");
     const moonMater = new THREE.MeshBasicMaterial({ map: moonTexture });
     moon = new THREE.Mesh(moonGeom, moonMater);
     earth.add(moon);
@@ -254,7 +159,7 @@
     const marsTexture = marsTextureloader.load("/Textures/Mars8k-modified.jpg");
     const marsMater = new THREE.MeshBasicMaterial({ map: marsTexture });
     mars = new THREE.Mesh(marsGeom, marsMater);
-    scene.add(mars);
+    sun.add(mars);
 
     //목성
     const JupiterGeom = new THREE.SphereGeometry(24, 128, 128);
@@ -262,7 +167,7 @@
     const JupiterTexture = JupiterTextureloader.load("/Textures/jupiter.jpg");
     const JupiterMater = new THREE.MeshBasicMaterial({map: JupiterTexture});
     jupiter = new THREE.Mesh(JupiterGeom, JupiterMater);
-    scene.add(jupiter);
+    sun.add(jupiter);
 
     //목성 고리
     const jupiterringGeom = new THREE.RingGeometry(37, 34, 128);
@@ -295,7 +200,7 @@
     const SaturnTexture = JupiterTextureloader.load("/Textures/saturn.jpg");
     const SaturnMater = new THREE.MeshBasicMaterial({map: SaturnTexture});
     saturn = new THREE.Mesh(SaturnGeom, SaturnMater);
-    scene.add(saturn);
+    sun.add(saturn);
 
     //천왕성
     const UranusGeom = new THREE.SphereGeometry(9.6, 128, 128);
@@ -303,49 +208,50 @@
     const UranusTexture = UranusTextureLoader.load("Textures/2k_uranus.jpg");
     const UranusMater = new THREE.MeshBasicMaterial({map: UranusTexture});
     uranus = new THREE.Mesh(UranusGeom, UranusMater);
-    scene.add(uranus);
+    sun.add(uranus);
 
     //해왕성
     const NeptuneGeom = new THREE.SphereGeometry(9.6, 128, 128);
-    const NeptuneMater = new THREE.MeshBasicMaterial({ color: 0x87ceeb });
+    const NeptuneTextureLoader = new THREE.TextureLoader();
+    const NepturnTexture = NeptuneTextureLoader.load("Textures/2k_neptune.jpg");
+    const NeptuneMater = new THREE.MeshBasicMaterial({map: NepturnTexture});
     neptune = new THREE.Mesh(NeptuneGeom, NeptuneMater);
+    sun.add(neptune)
 
-    // for (const planetData of planetsData) {
-    //   console.log("a");
-    //   const planet = createPlanet(planetData);
-    //   planetObjects.push(planet);
-    // }
     camera.position.set(0, 200, 200);
     camera.lookAt(0, 0, 0);
-    const animation = () => {
-      sun.rotation.y += 0.01;
-      earth.position.x = 1.2 * px(152.098_233, 147.098_291, Date.now() * 0.005); //46,001,009
-      earth.position.z = 1.2 * py(152.098_233, 147.098_291, Date.now() * 0.005); //69,817,445
-      earth.rotation.y += 0.01
+    const animation = (t:number) => {
+      sun.rotation.y -= 0.01;
+      sun.rotation.z = orbitalTiltRadians;
+      sun.rotation.x = orbitalTiltRadians;
+      earth.position.x = 1.2 * px(152.098_233, 147.098_291, Date.now() * 0.00007) ; //46,001,009
+      earth.position.z = 1.2 * pz(152.098_233, 147.098_291, Date.now() * 0.00007) ; //69,817,445
+      earth.position.y = -10;
+      earth.rotation.y += 0.4;
       moon.position.x = 7.5 * Math.cos(Date.now() * 0.004); //0.005
       moon.position.z = 7.5 * Math.sin(Date.now() * 0.004); //0.005
-      mercury.position.x = 1.2 * px(69.817_445, 46.001_009, Date.now() * 0.0003); //103.382.209
-      mercury.position.z = 1.2 * py(69.817_445, 46.001_009, Date.now() * 0.0003);
-      mercury.rotation.y += 0.01
-      venus.position.x = 1.2 * px(108.942_780, 107.476_170, Date.now() * 0.00011); //249,232,432
-      venus.position.z = 1.2 * py(108.942_780, 107.476_170, Date.now() * 0.00011); //214,923,921
-      venus.rotation.y += 0.01
-      mars.position.x = 1.2 * px(206.700_000, 249.200_000, Date.now() * 0.00007); //206.700_000
-      mars.position.z = 1.2 * py(206.700_000, 249.200_000, Date.now() * 0.00007); //249.200_000
-      mars.rotation.y += 0.01
+      mercury.position.x = 1.2 * px(69.817_445, 46.001_009, Date.now() * 0.00003); //103.382.209
+      mercury.position.z = 1.2 * pz(69.817_445, 46.001_009, Date.now() * 0.00003);
+      mercury.rotation.y += 0.04;
+      venus.position.x = 1.2 * px(108.942_780, 107.476_170, Date.now() * 0.000021); //249,232,432
+      venus.position.z = 1.2 * pz(108.942_780, 107.476_170, Date.now() * 0.000021); //214,923,921
+      venus.rotation.y += 0.04;
+      mars.position.x = 1.2 * px(206.700_000, 249.200_000, Date.now() * 0.000007); //206.700_000
+      mars.position.z = 1.2 * pz(206.700_000, 249.200_000, Date.now() * 0.000007); //249.200_000
+      mars.rotation.y += 0.04;
       jupiter.position.x = 1.2 * px(740.573_600, 816.520_800, Date.now() * 0.00009); //740,573,600
-      jupiter.position.z = 1.2 * py(740.573_600, 816.520_800, Date.now() * 0.00009); //816,520,800
-      jupiter.rotation.y += 0.01;
+      jupiter.position.z = 1.2 * pz(740.573_600, 816.520_800, Date.now() * 0.00009); //816,520,800
+      jupiter.rotation.x = py(90)
       europa.position.x = 7.5 * Math.cos(Date.now() * 0.001); //0.005
       europa.position.z = 7.5 * Math.sin(Date.now() * 0.001); //0.005
       saturn.position.x = 1.2 * px(1.349_467 * 1000, 1.503_983 * 1000, Date.now() * 0.000017); //1,349,467,375
-      saturn.position.z = 1.2 * py(1.426_725 * 1000, 1.503_983 * 1000, Date.now() * 0.000017); //1,503,983,449
-      saturn.rotation.y += 0.03
-      uranus.position.x = 1.2 * px(4.540_000 * 1000, 4.460_000 * 1000, Date.now() * 0.000111); //4,540,000,000
-      uranus.position.z = 1.2 * py(4.540_000 * 1000, 4.460_000 * 1000, Date.now() * 0.000111); //4.460,000,000
+      saturn.position.z = 1.2 * pz(1.426_725 * 1000, 1.503_983 * 1000, Date.now() * 0.000017); //1,503,983,449
+      saturn.rotation.y += 0.03;
+      uranus.position.x = 1.2 * px(4.540_000 * 1000, 4.460_000 * 1000, Date.now() * 0.00011); //4,540,000,000
+      uranus.position.z = 1.2 * pz(4.540_000 * 1000, 4.460_000 * 1000, Date.now() * 0.00011); //4.460,000,000
       neptune.position.x = 1.2 * px(4.459_631 * 1000, 4.536_874 * 1000, Date.now() * 0.00011); //4.459_631_496
-      neptune.position.z = 1.2 * py(4.459_631 * 1000, 4.536_874 * 1000, Date.now() * 0.00011); //4.536_874_325
-      neptune.rotation.y += 0.04
+      neptune.position.z = 1.2 * pz(4.459_631 * 1000, 4.536_874 * 1000, Date.now() * 0.00011); //4.536_874_325
+      neptune.rotation.y += 0.03;
       const moveSpeed = 3;
       if (moveBack) {
         controls.moveForward(-moveSpeed);
@@ -402,6 +308,9 @@
 </div>
 
 <style>
+  canvas {
+    background: url(8k_stars_milky_way.jpg);
+  }
   select {
     position: absolute;
     top: 120px;
@@ -412,10 +321,12 @@
   option {
     font-size: 9px;
   }
-  canvas {
+  #c {
     width: 100%;
     height: 100%;
     display: block;
+    background: url(8k_stars_milky_way.jpg) no-repeat center center;
+    background-size: cover;
   }
   .Wireframe {
     position: fixed;
@@ -524,4 +435,4 @@
     align-items: center;
     background: #4b4b4b;
   }
-</style>
+</style> 
